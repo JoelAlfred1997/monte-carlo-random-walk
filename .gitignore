@@ -10,3 +10,4 @@ outputs/results/*.csv
 .env
 PROJECT_STATE.md
 BUILD_GUIDE.md
+BUILD_GUIDE.docx
