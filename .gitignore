@@ -9,3 +9,4 @@ outputs/results/*.csv
 .streamlit/
 .env
 PROJECT_STATE.md
+BUILD_GUIDE.md
