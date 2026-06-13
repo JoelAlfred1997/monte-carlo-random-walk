@@ -1,125 +1,113 @@
 # Monte Carlo Simulation of Random Walk Outcomes
 
-A clean, portfolio-ready Monte Carlo simulation that estimates the probability of
-reaching a target step level in a dice-driven random walk, with an interactive
-Streamlit dashboard.
+This started as a small "what are the odds?" puzzle and I built it out into a
+proper little project.
 
-> This project demonstrates core data science skills including simulation,
-> probability estimation, statistical summarization, sensitivity analysis, data
-> visualization, and interactive dashboard development.
+The setup: you stand on step 0 of a staircase and roll a dice 100 times. Low
+rolls push you down a step, middling rolls move you up one, and a six lets you
+jump up by another dice roll. The question I wanted to answer sounds simple but
+is annoying to solve on paper:
 
-## Project summary
+**What's the chance you end up on step 60 or higher after 100 throws?**
 
-A person starts at step 0 and throws a dice 100 times. Simple rules decide
-whether they step down, step up, or jump forward. This project simulates the game
-thousands of times to estimate the probability of reaching a target step — an
-answer that has no clean closed-form formula.
+Rather than fight the maths, I let the computer play the game thousands of times
+and just counted how often it reached 60. That's the whole idea behind Monte
+Carlo simulation, and it's a surprisingly clean way to get an answer you can
+trust.
 
-## Business / statistical question
+Here's what 30 of those walks actually look like:
 
-**What is the probability of reaching at least 60 steps after 100 dice throws?**
+![30 simulated random walks](images/sample_walks.png)
 
-## Why this project matters
+Most of them drift upward, but the spread is wide. That's exactly why one run
+tells you almost nothing and you need a few thousand before the answer settles.
 
-It demonstrates how Monte Carlo simulation answers probability questions that are
-awkward to solve analytically, using nothing more than clear, reusable code and
-repeated random trials. The same pattern — simulate many times, then measure —
-applies to risk modelling, forecasting, and decision-making under uncertainty.
+## The rules
 
-## Simulation rules
+- Roll a 1 or 2: move down one step (but you can't go below 0)
+- Roll a 3, 4 or 5: move up one step
+- Roll a 6: move up by a random amount between 1 and 6
 
-For each of the dice throws, the current step changes as follows:
+I also added an optional "fall risk" on top of that: a tiny chance on each throw
+that you slip all the way back to step 0. It's off by default, but you can turn
+it on in the dashboard and watch the odds collapse. In my runs, switching on a 1%
+fall chance dropped the success rate from about 84% to roughly 40%, which makes
+sense once you realise a single slip wipes out everything.
 
-- **Dice 1–2** → step down 1 (never below 0): `step = max(0, step - 1)`
-- **Dice 3–5** → step up 1: `step = step + 1`
-- **Dice 6** → step up by a random 1–6: `step = step + randint(1, 7)`
-- **Optional fall risk** → a small per-throw chance of slipping back to step 0
-
-Every walk starts at step 0, has length `number_of_rolls + 1`, and never goes
-below zero.
-
-## Tech stack
-
-Python 3.11+, NumPy, pandas, matplotlib, plotly, Streamlit, pytest.
-
-## Repository structure
-
-```
-monte-carlo-random-walk/
-├── README.md
-├── requirements.txt
-├── app.py                      # Streamlit dashboard (UI only)
-├── notebooks/
-│   └── 01_random_walk_analysis.ipynb
-├── src/
-│   ├── config.py               # default parameters and paths
-│   ├── simulation.py           # the simulation engine
-│   ├── analysis.py             # probability, summary stats, sensitivity
-│   └── visualization.py        # matplotlib + plotly charts
-├── tests/
-│   ├── test_simulation.py
-│   └── test_analysis.py
-├── outputs/                    # saved charts and CSV results
-└── data/                       # placeholder (project is simulation-driven)
-```
-
-All business logic lives in `src/`; the dashboard and notebook only call into it.
-
-## Dashboard features
-
-- Adjustable number of walks, dice throws, target step, random seed and fall risk
-- Live key metrics (success/failure probability, mean, median, spread, best/worst)
-- Interactive walk paths and an endpoint histogram with a clear target marker
-- Sensitivity analysis showing the estimate stabilizing as simulations increase
-- Auto-generated written insight and CSV downloads of the results
-
-## How to run locally
+## Running it
 
 ```bash
 python -m venv .venv
 
-# Windows PowerShell:
+# Windows PowerShell
 .venv\Scripts\Activate.ps1
-# macOS/Linux:
+# macOS / Linux
 source .venv/bin/activate
 
 pip install -r requirements.txt
 streamlit run app.py
 ```
 
-## Example commands
+That opens the dashboard in your browser. You can drag sliders for the number of
+walks, the number of throws, the target step, the seed, and the fall risk, and
+everything updates live.
+
+A couple of other things you can run:
 
 ```bash
-pytest -q                 # run the test suite
-streamlit run app.py      # launch the interactive dashboard
-jupyter notebook          # open notebooks/01_random_walk_analysis.ipynb
+pytest -q          # run the tests
+jupyter notebook   # open notebooks/01_random_walk_analysis.ipynb
 ```
 
-## Key outputs
+## How it's put together
 
-- An interactive dashboard of probabilities and distributions
-- Saved charts in `outputs/charts/` and CSV summaries in `outputs/results/`
-- A narrative notebook walking through the analysis end to end
+I kept all the actual logic in `src/` and made the dashboard and the notebook
+just call into it. Partly that made the tests easier to write, and partly I got
+tired of pasting the same simulation code into three different places.
 
-## Portfolio value
+```
+app.py                 the Streamlit dashboard (just the UI)
+src/
+  config.py            default settings in one spot
+  simulation.py        the dice-rolling engine
+  analysis.py          probability, summary stats, sensitivity
+  visualization.py     the matplotlib and plotly charts
+tests/                 pytest tests for the engine and the stats
+notebooks/             a walkthrough notebook telling the whole story
+outputs/               saved charts and CSVs
+data/                  empty on purpose; there's no external dataset
+```
 
-A focused mini-project that cleanly shows:
+## What the dashboard shows
 
-- **Python fundamentals** and a clean, testable project structure
-- **Probability and simulation** thinking (Monte Carlo, law of large numbers)
-- **Data visualization** with both static and interactive charts
-- **Dashboarding** with Streamlit
+- The headline probability of reaching the target, plus the average, median,
+  spread, and the best and worst walks
+- An interactive plot of sample walks so you can see the individual paths
+- A histogram of where walks finish, with the target marked
+- A sensitivity table and chart showing the estimate settle down as you run more
+  simulations (this is the part that convinced me the number was real and not
+  just luck)
+- A short written summary and buttons to download the results as CSV
 
-It is presented honestly as a simulation and statistics project — not machine
-learning — and is not intended to replace a full ML project.
+If you just want the punchline, here's where a default run of 500 walks ends up,
+with the target line in red:
 
-## Future improvements
+![Distribution of final steps with the target at 60](images/endpoint_histogram.png)
 
-- Confidence intervals around the probability estimate
-- Configurable dice rules directly from the dashboard
-- Side-by-side comparison of multiple rule sets
+Most walks finish past 60, which is why the success probability comes out around
+84%.
 
-## Author note
+## A note on what this is
 
-Built as a focused mini-project to practise simulation, probability, and
-dashboarding, with reusable tested code and a reproducible workflow.
+It's a mini-project, and I'm not pretending otherwise. There's no machine
+learning here and it doesn't need any. It's me taking a textbook probability
+exercise and turning it into something with reusable code, tests, charts and a
+dashboard I can actually click around in. If you want to see how I write Python
+and think about probability and simulation, this is a decent place to look.
+
+## Stuff I might add later
+
+Confidence intervals around the probability would be the obvious next step, and
+it'd be nice to let people edit the dice rules from the dashboard instead of
+hard-coding them. Maybe a way to compare two rule sets side by side. Haven't
+gotten to any of it yet.

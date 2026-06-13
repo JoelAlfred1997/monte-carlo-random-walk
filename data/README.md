@@ -1,11 +1,11 @@
 # Data
 
-This project is **simulation-driven** — it does not rely on an external dataset.
+There's no dataset here, and that's on purpose.
 
-All "data" is generated at runtime by the Monte Carlo engine in
-[`src/simulation.py`](../src/simulation.py) using the dice rules described in the
-project README. There is therefore no raw data file to download or clean.
+Everything this project works with is generated on the fly by the simulation
+code in [`src/simulation.py`](../src/simulation.py) from the dice rules. Nothing
+to download, nothing to clean.
 
-This folder is kept as a placeholder so the repository structure stays
-consistent and ready in case real-world data is added later (for example, to
-calibrate the dice probabilities against observed outcomes).
+I left this folder in place so the structure makes sense, and in case I ever want
+to drop in real data later (say, to check the dice probabilities against actual
+recorded outcomes). For now it's empty.
